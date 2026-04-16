@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -26,6 +27,14 @@ public class Process {
 
     @Embedded
     private Progress progress;
+
+    private LocalDateTime started_at;
+
+    private LocalDateTime estimated_completion;
+
+    @Embedded
+    private Result results;
+
 
 
 }
