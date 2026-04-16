@@ -1,6 +1,7 @@
 package com.app.technicalchallenge.async;
 
 import com.app.technicalchallenge.entities.Process;
+import com.app.technicalchallenge.io.FileAnalyzer;
 import com.app.technicalchallenge.service.ProcessService;
 import org.springframework.core.io.Resource;
 
@@ -11,13 +12,15 @@ import java.util.concurrent.TimeUnit;
 
 public class ProcessAsync implements Runnable{
 
-    public static volatile long STOPP = 0;
-
     private final ProcessService service;
 
-    private final Process process;
+    private Process process;
 
     private final Queue<Resource> files;
+
+    private Resource lastFile;
+
+    private final FileAnalyzer analyzer;
 
     public ProcessAsync(
             ProcessService service,
@@ -32,9 +35,12 @@ public class ProcessAsync implements Runnable{
     @Override
     public void run() {
         try{
+            int count = 0;
             while(!files.isEmpty()){
-                var file = files.poll();
-                System.out.println("I'm thread " + process.getId() + " and I'm reading file: " + file.getFilename());
+                if(count == 2){}
+                lastFile = files.poll();
+                analyzer.
+
                 TimeUnit.SECONDS.sleep(10);
             }
         }catch (InterruptedException e){
