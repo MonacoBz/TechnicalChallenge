@@ -4,6 +4,7 @@ import com.app.technicalchallenge.async.ProcessAsync;
 import com.app.technicalchallenge.dto.ProcessResponseDto;
 import com.app.technicalchallenge.entities.Process;
 import com.app.technicalchallenge.entities.Progress;
+import com.app.technicalchallenge.entities.Result;
 import com.app.technicalchallenge.entities.Status;
 import com.app.technicalchallenge.io.FileAnalyzer;
 import com.app.technicalchallenge.io.FileScanner;
@@ -12,6 +13,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
@@ -38,9 +42,10 @@ public class ProcessService {
     }
 
     public ProcessResponseDto createProcess(){
-        var process = new Process(null, UUID.randomUUID(),Status.PENDIG,new Progress(0,0,0));
+        var files = fileScanner.getFiles();
+        var process = new Process(null, UUID.randomUUID(),Status.PENDIG,new Progress(files.size(),0,0), LocalDateTime.now(),null,new Result(0,0,new HashSet<>(),new HashSet<>()));
         repository.save(process);
-        executor.submit(new ProcessAsync(this,process,fileScanner.getFiles(),fileAnalyzer));
+        executor.submit(new ProcessAsync(this,process,files,fileAnalyzer));
         return new ProcessResponseDto(process);
     }
 

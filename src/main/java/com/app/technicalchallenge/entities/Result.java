@@ -8,7 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.List;
+import java.util.Set;
 
 @Embeddable
 @Getter
@@ -22,8 +22,8 @@ public class Result {
     private long totalLines;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    private List<String> mostFrequentWords;
+    private Set<String> mostFrequentWords;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    private List<String> fileProccesed;
+    private Set<String> fileProccesed;
 }

@@ -39,14 +39,26 @@ public class ProcessAsync implements Runnable{
         try{
             int count = 0;
             while(!files.isEmpty()){
-                if(count == 2){}
+                if(count == 2){
+                    service.updateProcess(process);
+                    count = 0;
+                }
                 lastFile = files.poll();
-                analyzer.analyze(process);
+                analyzer.analyze(process,lastFile);
+                setProgress();
                 count++;
                 TimeUnit.SECONDS.sleep(10);
             }
         }catch (InterruptedException e){
             System.out.println("ERROR");
         }
+    }
+
+    public void setProgress(){
+        var progess = process.getProgress();
+        var percentage = (progess.getPorcentage() + 1) * 10;
+        var processedFiles = progess.getProccesedFiles() + 1;
+        progess.setPorcentage(percentage);
+        progess.setProccesedFiles(processedFiles);
     }
 }
