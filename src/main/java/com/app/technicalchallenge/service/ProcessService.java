@@ -25,9 +25,9 @@ public class ProcessService {
     }
 
     public ProcessResponseDto createProcess(){
-        var process = new Process(null, Status.PENDIG);
+        var process = new Process(null, UUID.randomUUID(),Status.PENDIG);
         repository.save(process);
         executor.submit(new ProcessAsync(this,process));
-        return null;
+        return new ProcessResponseDto(process.getUuid().toString(),process.getStatus());
     }
 }
