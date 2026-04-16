@@ -25,11 +25,13 @@ public class ProcessAsync implements Runnable{
     public ProcessAsync(
             ProcessService service,
             Process process,
-            Queue<Resource> files
+            Queue<Resource> files,
+            FileAnalyzer analyzer
     ){
         this.service = service;
         this.process = process;
         this.files = files;
+        this.analyzer = analyzer;
     }
 
     @Override
@@ -39,8 +41,8 @@ public class ProcessAsync implements Runnable{
             while(!files.isEmpty()){
                 if(count == 2){}
                 lastFile = files.poll();
-                analyzer.
-
+                analyzer.analyze(process);
+                count++;
                 TimeUnit.SECONDS.sleep(10);
             }
         }catch (InterruptedException e){
