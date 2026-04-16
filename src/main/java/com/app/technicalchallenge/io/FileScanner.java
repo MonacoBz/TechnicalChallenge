@@ -13,22 +13,21 @@ public class FileScanner {
 
     private final ResourceLoader resourceLoader;
 
-    private Queue<Resource> filesData = new ArrayDeque<>();
-
     public FileScanner(ResourceLoader resourceLoader){
         this.resourceLoader = resourceLoader;
     }
 
     public Queue<Resource> getFiles(){
-        findFiles();
-        return new ArrayDeque<>(filesData);
+        return findFiles();
     }
 
-    private void findFiles(){
+    private Queue<Resource> findFiles(){
         ResourcePatternResolver resolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
+        Queue<Resource> filesData = new ArrayDeque<>();
         try{
             Resource[] resources = resolver.getResources("classpath:archivos/*.txt");
             filesData.addAll(Arrays.asList(resources));
+            return filesData;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
