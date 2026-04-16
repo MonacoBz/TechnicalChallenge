@@ -4,48 +4,6 @@ import random
 # Configuración
 folder_name = "src/main/resources/archivos"
 num_files = 10
-min_words = 500
-max_words = 1000
-
-# Texto base para generar contenido
-lorem_text = (
-    "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor "
-    "incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud "
-    "exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat "
-)
-
-def generate_files():
-    # Crear la carpeta si no existe
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
-        print(f"Carpeta creada: {folder_name}")
-
-    words_list = lorem_text.split()
-
-    for i in range(1, num_files + 1):
-        file_name = f"archivo_{i}.txt"
-        file_path = os.path.join(folder_name, file_name)
-        
-        # Determinar cantidad de palabras aleatoria
-        target_word_count = random.randint(min_words, max_words)
-        
-        # Generar contenido
-        content = " ".join(random.choices(words_list, k=target_word_count))
-        
-        # Escribir el archivo
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(content)
-        
-        print(f"Generado: {file_name} ({target_word_count} palabras)")
-
-if __name__ == "__main__":
-    generate_files()
-import os
-import random
-
-# Configuración
-folder_name = "src/main/resources/archivos"
-num_files = 10
 
 # Diccionarios temáticos en inglés
 themes = {
@@ -106,7 +64,7 @@ def generate_files():
             current_count += para_len
         
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write("\n\n".join(content))
+            f.write("\n".join(content))
         
         print(f"Creado: {file_name} | Tema: {current_theme} | Palabras: ~{current_count}")
 

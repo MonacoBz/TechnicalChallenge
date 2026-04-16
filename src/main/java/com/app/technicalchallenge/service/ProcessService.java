@@ -41,13 +41,13 @@ public class ProcessService {
         this.fileAnalyzer = fileAnalyzer;
     }
 
-    public ProcessResponseDto createProcess(){
-        var files = fileScanner.getFiles();
-        var process = new Process(null, UUID.randomUUID(),Status.PENDIG,new Progress(files.size(),0,0), LocalDateTime.now(),null,new Result(0,0,new HashSet<>(),new HashSet<>()));
+    public ProcessResponseDto startProcess(){
+        var process = createProcess();
         repository.save(process);
         executor.submit(new ProcessAsync(this,process,files,fileAnalyzer));
         return new ProcessResponseDto(process);
     }
+
 
     @Transactional
     public synchronized Process updateProcess(Process process){
@@ -55,4 +55,24 @@ public class ProcessService {
         return repository.save(process);
     }
 
+    private Process createProcess(){
+        var files = fileScanner.getFiles();
+        return new Process(
+                null,
+                UUID.randomUUID(),
+                Status.PENDIG,
+                new Progress(
+                        files.size(),
+                        0,
+                        0
+                ),
+                LocalDateTime.now(),
+                null,
+                new Result(
+                        0,
+                        0,
+                        new HashSet<>(),
+                        new HashSet<>())
+        );
+    }
 }

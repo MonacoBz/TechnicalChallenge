@@ -1,6 +1,7 @@
 package com.app.technicalchallenge.async;
 
 import com.app.technicalchallenge.entities.Process;
+import com.app.technicalchallenge.entities.Status;
 import com.app.technicalchallenge.io.FileAnalyzer;
 import com.app.technicalchallenge.service.ProcessService;
 import org.springframework.core.io.Resource;
@@ -36,29 +37,35 @@ public class ProcessAsync implements Runnable{
 
     @Override
     public void run() {
-        try{
-            int count = 0;
-            while(!files.isEmpty()){
-                if(count == 2){
-                    service.updateProcess(process);
-                    count = 0;
-                }
-                lastFile = files.poll();
-                analyzer.analyze(process,lastFile);
-                setProgress();
-                count++;
-                TimeUnit.SECONDS.sleep(10);
+        int count = 0;
+        process.setStatus(Status.RUNNING);
+        service.updateProcess(process);
+        while(!files.isEmpty()){
+            if(count == 2){
+                System.out.println("Guardando cambios");
+                service.updateProcess(process);
+                count = 0;
             }
-        }catch (InterruptedException e){
-            System.out.println("ERROR");
+            System.out.println("Leyendo archivo");
+            lastFile = files.poll();
+            analyzer.analyze(process,lastFile);
+            setProgress();
+            count++;
+            try {
+                TimeUnit.SECONDS.sleep(15);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
+        process.setStatus(Status.COMPLETED);
+        service.updateProcess(process);
     }
 
     public void setProgress(){
         var progess = process.getProgress();
-        var percentage = (progess.getPorcentage() + 1) * 10;
         var processedFiles = progess.getProccesedFiles() + 1;
-        progess.setPorcentage(percentage);
+        var percentage = processedFiles * 10;
+        progess.setPorcentage((int) percentage);
         progess.setProccesedFiles(processedFiles);
     }
 }

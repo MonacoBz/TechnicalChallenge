@@ -46,7 +46,7 @@ public class FileAnalyzer {
         for(String key : frequence.keySet()){
             if(!frequentWords.contains(key)){
                 var value = frequence.get(key);
-                if(value >= 30)frequentWords.add(key);
+                if(value >= 100)frequentWords.add(key);
             }
         }
         var result = process.getResults();
