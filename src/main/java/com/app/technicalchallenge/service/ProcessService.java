@@ -4,6 +4,7 @@ import com.app.technicalchallenge.async.ProcessAsync;
 import com.app.technicalchallenge.dto.ProcessResponseDto;
 import com.app.technicalchallenge.entities.Process;
 import com.app.technicalchallenge.entities.Status;
+import com.app.technicalchallenge.io.FileScanner;
 import com.app.technicalchallenge.repository.ProcessRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,17 +18,20 @@ public class ProcessService {
 
     private final ExecutorService executor;
 
+    private final FileScanner fileScanner;
     public ProcessService(
             ProcessRepository repository,
-            ExecutorService executor){
+            ExecutorService executor,
+            FileScanner fileScanner){
         this.repository = repository;
         this.executor = executor;
+        this.fileScanner = fileScanner;
     }
 
     public ProcessResponseDto createProcess(){
         var process = new Process(null, UUID.randomUUID(),Status.PENDIG);
         repository.save(process);
-        executor.submit(new ProcessAsync(this,process));
+        executor.submit(new ProcessAsync(this,process,fileScanner.getFiles()));
         return new ProcessResponseDto(process);
     }
 }
