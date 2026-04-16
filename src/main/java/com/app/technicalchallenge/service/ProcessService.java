@@ -28,6 +28,6 @@ public class ProcessService {
         var process = new Process(null, UUID.randomUUID(),Status.PENDIG);
         repository.save(process);
         executor.submit(new ProcessAsync(this,process));
-        return new ProcessResponseDto(process.getUuid().toString(),process.getStatus());
+        return new ProcessResponseDto(process);
     }
 }
