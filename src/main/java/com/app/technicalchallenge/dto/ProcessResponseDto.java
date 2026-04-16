@@ -10,6 +10,7 @@ public record ProcessResponseDto(
         Status status,
         ProgressResponseDto progress,
         LocalDateTime started_at,
+        LocalDateTime estimated_completion,
         ResultResponseDto result
 ) {
     public ProcessResponseDto(Process process){
@@ -18,6 +19,7 @@ public record ProcessResponseDto(
                 process.getStatus(),
                 new ProgressResponseDto(process.getProgress()),
                 process.getStarted_at(),
+                process.getEstimated_completion(),
                 new ResultResponseDto(process.getResults())
         );
     }

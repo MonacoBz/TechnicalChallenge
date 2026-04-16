@@ -6,10 +6,9 @@ import com.app.technicalchallenge.io.FileAnalyzer;
 import com.app.technicalchallenge.service.ProcessService;
 import org.springframework.core.io.Resource;
 
-
-import java.sql.Time;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Queue;
-import java.util.concurrent.TimeUnit;
 
 public class ProcessAsync implements Runnable{
 
@@ -40,32 +39,34 @@ public class ProcessAsync implements Runnable{
         int count = 0;
         process.setStatus(Status.RUNNING);
         service.updateProcess(process);
+        var start = LocalDateTime.now();
         while(!files.isEmpty()){
             if(count == 2){
-                System.out.println("Guardando cambios");
+                calculateTime(start);
                 service.updateProcess(process);
                 count = 0;
             }
-            System.out.println("Leyendo archivo");
             lastFile = files.poll();
             analyzer.analyze(process,lastFile);
             setProgress();
             count++;
-            try {
-                TimeUnit.SECONDS.sleep(15);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
         process.setStatus(Status.COMPLETED);
         service.updateProcess(process);
     }
 
-    public void setProgress(){
+    private void setProgress(){
         var progess = process.getProgress();
         var processedFiles = progess.getProccesedFiles() + 1;
         var percentage = processedFiles * 10;
         progess.setPorcentage((int) percentage);
         progess.setProccesedFiles(processedFiles);
+    }
+
+    private void calculateTime(LocalDateTime start){
+        Duration elapsed = Duration.between(start, LocalDateTime.now());
+        double secondsPerFile = (double) elapsed.toSeconds() / process.getProgress().getProccesedFiles();
+        long secondsRemaining = (long) (secondsPerFile * files.size());
+        process.setEstimated_completion(LocalDateTime.now().plusSeconds(secondsRemaining));
     }
 }
