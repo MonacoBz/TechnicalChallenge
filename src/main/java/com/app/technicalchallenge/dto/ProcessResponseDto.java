@@ -6,4 +6,5 @@ public record ProcessResponseDto(
         String UUID,
         Status status
 ) {
+
 }
