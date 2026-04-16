@@ -12,6 +12,6 @@ public class ApiController {
 
     @PostMapping("/start")
     public ResponseEntity<ProcessResponseDto> startProcess() {
-
+        return null;
     }
 }
