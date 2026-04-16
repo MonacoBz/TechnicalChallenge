@@ -10,7 +10,6 @@ import com.app.technicalchallenge.io.FileAnalyzer;
 import com.app.technicalchallenge.io.FileScanner;
 import com.app.technicalchallenge.repository.ProcessRepository;
 import org.springframework.core.io.Resource;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +49,6 @@ public class ProcessService {
         executor.submit(new ProcessAsync(this,process,files,fileAnalyzer));
         return new ProcessResponseDto(process);
     }
-
 
     @Transactional
     public synchronized Process updateProcess(Process process){
