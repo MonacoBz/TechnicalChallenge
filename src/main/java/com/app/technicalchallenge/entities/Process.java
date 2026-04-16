@@ -24,5 +24,8 @@ public class Process {
 
     private Status status;
 
+    @Embedded
+    private Progress progress;
+
 
 }
