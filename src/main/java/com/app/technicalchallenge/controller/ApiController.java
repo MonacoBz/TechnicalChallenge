@@ -1,6 +1,7 @@
 package com.app.technicalchallenge.controller;
 
 import com.app.technicalchallenge.dto.ProcessResponseDto;
+import com.app.technicalchallenge.dto.ResultResponseDto;
 import com.app.technicalchallenge.entities.Process;
 import com.app.technicalchallenge.service.ProcessService;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +37,11 @@ public class ApiController {
     @GetMapping("/list")
     public ResponseEntity<List<ProcessResponseDto>> stateProcesses(){
         return ResponseEntity.ok(service.stateProcesses());
+    }
+
+    @GetMapping("/results/{process_id}")
+    public ResponseEntity<ResultResponseDto> resultProcess(@PathVariable long process_id){
+        return ResponseEntity.ok(service.resultProcess(process_id));
     }
 
 }
