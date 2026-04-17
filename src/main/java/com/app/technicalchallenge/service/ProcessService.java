@@ -2,6 +2,7 @@ package com.app.technicalchallenge.service;
 
 import com.app.technicalchallenge.async.ProcessAsync;
 import com.app.technicalchallenge.dto.ProcessResponseDto;
+import com.app.technicalchallenge.dto.ResultResponseDto;
 import com.app.technicalchallenge.entities.Process;
 import com.app.technicalchallenge.entities.Progress;
 import com.app.technicalchallenge.entities.Result;
@@ -74,6 +75,11 @@ public class ProcessService {
                 .stream()
                 .map(ProcessResponseDto::new)
                 .toList();
+    }
+
+    public ResultResponseDto resultProcess(long process_id){
+        var p = repository.findById(process_id).get();
+        return new ResultResponseDto(p.getResults());
     }
 
     @Transactional

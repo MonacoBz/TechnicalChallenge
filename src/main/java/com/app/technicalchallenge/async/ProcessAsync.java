@@ -8,6 +8,8 @@ import org.springframework.core.io.Resource;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
@@ -25,6 +27,8 @@ public class ProcessAsync implements Runnable{
 
     private Thread thread;
 
+    private Map<String,Integer> words;
+
     public ProcessAsync(
             ProcessService service,
             Process process,
@@ -35,7 +39,7 @@ public class ProcessAsync implements Runnable{
         this.process = process;
         this.files = files;
         this.analyzer = analyzer;
-
+        this.words = new HashMap<>();
     }
 
     @Override
@@ -53,7 +57,7 @@ public class ProcessAsync implements Runnable{
                 count = 0;
             }
             lastFile = files.poll();
-            analyzer.analyze(process,lastFile);
+            analyzer.analyze(process,lastFile,words);
             setProgress();
             count++;
             try {
