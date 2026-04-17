@@ -14,9 +14,9 @@ import java.util.Set;
 
 public class FileAnalyzer {
 
-    public void analyze(Process procees, Resource resource){
+    public void analyze(Process procees, Resource resource,Map<String,Integer> frequence){
         try(BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))){
-            var resultAnalyzer = new ResultAnalyzer();
+            var resultAnalyzer = new ResultAnalyzer(frequence);
             while(reader.ready())prepareResults(reader.readLine(),resultAnalyzer);
             setResults(procees,resource,resultAnalyzer);
         }catch (Exception e){}
@@ -52,7 +52,11 @@ public class FileAnalyzer {
 }
 
 class ResultAnalyzer{
-    Map<String,Integer> frequence = new HashMap<>();
+    Map<String,Integer> frequence;
     long totalLines;
     long totalWords;
+
+    public ResultAnalyzer(Map<String,Integer> frequence){
+        this.frequence = frequence;
+    }
 }
