@@ -69,6 +69,13 @@ public class ProcessService {
         return new ProcessResponseDto(process);
     }
 
+    public List<ProcessResponseDto> stateProcesses(){
+        return repository.findAll()
+                .stream()
+                .map(ProcessResponseDto::new)
+                .toList();
+    }
+
     @Transactional
     public synchronized Process updateProcess(Process process){
         if(!repository.existsById(process.getId()))throw new RuntimeException("There's not a process with id: " + process.getId());
