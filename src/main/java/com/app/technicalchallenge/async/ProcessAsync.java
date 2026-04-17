@@ -15,13 +15,15 @@ public class ProcessAsync implements Runnable{
 
     private final ProcessService service;
 
-    public Process process;
+    private Process process;
 
     private final Queue<Resource> files;
 
     private Resource lastFile;
 
     private final FileAnalyzer analyzer;
+
+    private Thread thread;
 
     public ProcessAsync(
             ProcessService service,
@@ -33,15 +35,18 @@ public class ProcessAsync implements Runnable{
         this.process = process;
         this.files = files;
         this.analyzer = analyzer;
+
     }
 
     @Override
     public void run() {
+        thread = Thread.currentThread();
         int count = 0;
         process.setStatus(Status.RUNNING);
         service.updateProcess(process);
         var start = LocalDateTime.now();
         while(!files.isEmpty()){
+            System.out.println("------" + Thread.currentThread().isInterrupted());
             if(Thread.currentThread().isInterrupted())break;
             if(count == 2){
                 calculateTime(start);
@@ -52,6 +57,11 @@ public class ProcessAsync implements Runnable{
             analyzer.analyze(process,lastFile);
             setProgress();
             count++;
+            try {
+                TimeUnit.SECONDS.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
         process.setStatus((Thread.currentThread().isInterrupted())?Status.STOPPED:Status.COMPLETED);
         service.updateProcess(process);
@@ -72,7 +82,11 @@ public class ProcessAsync implements Runnable{
         process.setEstimated_completion(LocalDateTime.now().plusSeconds(secondsRemaining));
     }
 
-    public void algo(){
-        Thread.currentThread().interrupt();
+    public void stopThread(){
+        thread.interrupt();
+    }
+
+    public long getProcessId(){
+        return process.getId();
     }
 }

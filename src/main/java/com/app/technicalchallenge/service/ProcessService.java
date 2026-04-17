@@ -54,8 +54,13 @@ public class ProcessService {
     }
 
     public ProcessResponseDto stopProcess(long process_id){
+        processes.stream()
+                .filter(p->p.getProcessId() == process_id)
+                .findFirst()
+                .get()
+                .stopThread();
 
-        return null;
+        return new ProcessResponseDto(repository.findById(process_id).get());
     }
     @Transactional
     public synchronized Process updateProcess(Process process){
