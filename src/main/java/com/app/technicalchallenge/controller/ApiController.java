@@ -4,10 +4,7 @@ import com.app.technicalchallenge.dto.ProcessResponseDto;
 import com.app.technicalchallenge.entities.Process;
 import com.app.technicalchallenge.service.ProcessService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/process")
@@ -29,5 +26,9 @@ public class ApiController {
         return ResponseEntity.ok(service.stopProcess(process_id));
     }
 
+    @GetMapping("/status/{process_id}")
+    public ResponseEntity<ProcessResponseDto> statusProcess(@PathVariable long process_id){
+        return ResponseEntity.ok(service.statusProcess(process_id));
+    }
 
 }
