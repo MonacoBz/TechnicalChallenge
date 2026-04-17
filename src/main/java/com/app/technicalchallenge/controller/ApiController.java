@@ -24,5 +24,10 @@ public class ApiController {
         return ResponseEntity.ok(service.startProcess());
     }
 
+    @PostMapping("/stop/{process_id}")
+    public ResponseEntity<ProcessResponseDto> stopProcess(@PathVariable long process_id){
+        return ResponseEntity.ok(service.stopProcess(process_id));
+    }
+
 
 }

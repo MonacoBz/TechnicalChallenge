@@ -9,6 +9,7 @@ import org.springframework.core.io.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 
 public class ProcessAsync implements Runnable{
 
@@ -22,6 +23,8 @@ public class ProcessAsync implements Runnable{
 
     private final FileAnalyzer analyzer;
 
+    private Thread thread;
+
     public ProcessAsync(
             ProcessService service,
             Process process,
@@ -32,15 +35,19 @@ public class ProcessAsync implements Runnable{
         this.process = process;
         this.files = files;
         this.analyzer = analyzer;
+
     }
 
     @Override
     public void run() {
+        thread = Thread.currentThread();
         int count = 0;
         process.setStatus(Status.RUNNING);
         service.updateProcess(process);
         var start = LocalDateTime.now();
         while(!files.isEmpty()){
+            System.out.println("------" + Thread.currentThread().isInterrupted());
+            if(Thread.currentThread().isInterrupted())break;
             if(count == 2){
                 calculateTime(start);
                 service.updateProcess(process);
@@ -50,8 +57,13 @@ public class ProcessAsync implements Runnable{
             analyzer.analyze(process,lastFile);
             setProgress();
             count++;
+            try {
+                TimeUnit.SECONDS.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
-        process.setStatus(Status.COMPLETED);
+        process.setStatus((Thread.currentThread().isInterrupted())?Status.STOPPED:Status.COMPLETED);
         service.updateProcess(process);
     }
 
@@ -68,5 +80,13 @@ public class ProcessAsync implements Runnable{
         double secondsPerFile = (double) elapsed.toSeconds() / process.getProgress().getProccesedFiles();
         long secondsRemaining = (long) (secondsPerFile * files.size());
         process.setEstimated_completion(LocalDateTime.now().plusSeconds(secondsRemaining));
+    }
+
+    public void stopThread(){
+        thread.interrupt();
+    }
+
+    public long getProcessId(){
+        return process.getId();
     }
 }
