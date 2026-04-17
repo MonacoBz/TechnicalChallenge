@@ -6,6 +6,8 @@ import com.app.technicalchallenge.service.ProcessService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/process")
 public class ApiController {
@@ -29,6 +31,11 @@ public class ApiController {
     @GetMapping("/status/{process_id}")
     public ResponseEntity<ProcessResponseDto> statusProcess(@PathVariable long process_id){
         return ResponseEntity.ok(service.statusProcess(process_id));
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<ProcessResponseDto>> stateProcesses(){
+        return ResponseEntity.ok(service.stateProcesses());
     }
 
 }
