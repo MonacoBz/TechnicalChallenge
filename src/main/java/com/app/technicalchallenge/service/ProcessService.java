@@ -50,6 +50,9 @@ public class ProcessService {
         return new ProcessResponseDto(process);
     }
 
+    public ProcessResponseDto stopProcess(long process_id){
+        return null;
+    }
     @Transactional
     public synchronized Process updateProcess(Process process){
         if(!repository.existsById(process.getId()))throw new RuntimeException("There's not a process with id: " + process.getId());
