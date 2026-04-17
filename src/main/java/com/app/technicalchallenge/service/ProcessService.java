@@ -62,6 +62,13 @@ public class ProcessService {
 
         return new ProcessResponseDto(repository.findById(process_id).get());
     }
+
+    public ProcessResponseDto statusProcess(long process_id){
+        var process =  repository.findById(process_id)
+                        .orElseThrow(()->new RuntimeException("There are not a process with id: " + process_id));
+        return new ProcessResponseDto(process);
+    }
+
     @Transactional
     public synchronized Process updateProcess(Process process){
         if(!repository.existsById(process.getId()))throw new RuntimeException("There's not a process with id: " + process.getId());

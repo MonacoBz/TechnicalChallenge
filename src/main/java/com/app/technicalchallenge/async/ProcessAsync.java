@@ -15,7 +15,7 @@ public class ProcessAsync implements Runnable{
 
     private final ProcessService service;
 
-    private Process process;
+    private final Process process;
 
     private final Queue<Resource> files;
 
@@ -46,7 +46,6 @@ public class ProcessAsync implements Runnable{
         service.updateProcess(process);
         var start = LocalDateTime.now();
         while(!files.isEmpty()){
-            System.out.println("------" + Thread.currentThread().isInterrupted());
             if(Thread.currentThread().isInterrupted())break;
             if(count == 2){
                 calculateTime(start);
