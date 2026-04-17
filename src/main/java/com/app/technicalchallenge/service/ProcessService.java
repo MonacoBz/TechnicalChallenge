@@ -14,11 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 @Service
 public class ProcessService {
@@ -30,6 +28,8 @@ public class ProcessService {
     private final FileScanner fileScanner;
 
     private final FileAnalyzer fileAnalyzer;
+
+    private List<ProcessAsync> processes;
     public ProcessService(
             ProcessRepository repository,
             ExecutorService executor,
@@ -40,17 +40,21 @@ public class ProcessService {
         this.executor = executor;
         this.fileScanner = fileScanner;
         this.fileAnalyzer = fileAnalyzer;
+        processes = new ArrayList<>();
     }
 
     public ProcessResponseDto startProcess(){
         var files = fileScanner.getFiles();
         var process = createProcess(files);
         repository.save(process);
-        executor.submit(new ProcessAsync(this,process,files,fileAnalyzer));
+        var async = new ProcessAsync(this,process,files,fileAnalyzer);
+        executor.submit(async);
+        processes.add(async);
         return new ProcessResponseDto(process);
     }
 
     public ProcessResponseDto stopProcess(long process_id){
+
         return null;
     }
     @Transactional

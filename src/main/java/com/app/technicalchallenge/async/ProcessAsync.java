@@ -9,12 +9,13 @@ import org.springframework.core.io.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 
 public class ProcessAsync implements Runnable{
 
     private final ProcessService service;
 
-    private Process process;
+    public Process process;
 
     private final Queue<Resource> files;
 
@@ -41,6 +42,7 @@ public class ProcessAsync implements Runnable{
         service.updateProcess(process);
         var start = LocalDateTime.now();
         while(!files.isEmpty()){
+            if(Thread.currentThread().isInterrupted())break;
             if(count == 2){
                 calculateTime(start);
                 service.updateProcess(process);
@@ -51,7 +53,7 @@ public class ProcessAsync implements Runnable{
             setProgress();
             count++;
         }
-        process.setStatus(Status.COMPLETED);
+        process.setStatus((Thread.currentThread().isInterrupted())?Status.STOPPED:Status.COMPLETED);
         service.updateProcess(process);
     }
 
@@ -68,5 +70,9 @@ public class ProcessAsync implements Runnable{
         double secondsPerFile = (double) elapsed.toSeconds() / process.getProgress().getProccesedFiles();
         long secondsRemaining = (long) (secondsPerFile * files.size());
         process.setEstimated_completion(LocalDateTime.now().plusSeconds(secondsRemaining));
+    }
+
+    public void algo(){
+        Thread.currentThread().interrupt();
     }
 }
