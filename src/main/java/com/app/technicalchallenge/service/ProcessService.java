@@ -66,6 +66,14 @@ public class ProcessService {
         return new ProcessCreationResponseDto(process);
     }
 
+    public void pauseProcess(long process_id){
+        processes.stream()
+                .filter(p->p.getProcessId() == process_id)
+                .findFirst()
+                .orElseThrow(()->new ProcessException("There are not a process with id " + process_id))
+                .pauseProcess();
+    }
+
     public void stopProcess(long process_id){
         processes.stream()
                 .filter(p->p.getProcessId() == process_id)
