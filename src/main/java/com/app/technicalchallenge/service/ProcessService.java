@@ -1,6 +1,7 @@
 package com.app.technicalchallenge.service;
 
 import com.app.technicalchallenge.async.ProcessAsync;
+import com.app.technicalchallenge.dto.ProcessCreationResponseDto;
 import com.app.technicalchallenge.dto.ProcessResponseDto;
 import com.app.technicalchallenge.dto.ResultResponseDto;
 import com.app.technicalchallenge.entities.Process;
@@ -45,24 +46,23 @@ public class ProcessService {
         processes = new CopyOnWriteArrayList<>();
     }
 
-    public ProcessResponseDto startProcess(){
+    public ProcessCreationResponseDto startProcess(){
         var files = fileScanner.getFiles();
         var process = createProcess(files);
         repository.save(process);
         var async = new ProcessAsync(this,process,files,fileAnalyzer);
         executor.submit(async);
         processes.add(async);
-        return new ProcessResponseDto(process);
+        return new ProcessCreationResponseDto(process);
     }
 
-    public ProcessResponseDto stopProcess(long process_id){
+    public void stopProcess(long process_id){
         processes.stream()
                 .filter(p->p.getProcessId() == process_id)
                 .findFirst()
                 .orElseThrow(()->new ProcessException("There are not a process with id " + process_id))
                 .stopThread();
 
-        return new ProcessResponseDto(repository.findById(process_id).get());
     }
 
     public ProcessResponseDto statusProcess(long process_id){

@@ -1,9 +1,11 @@
 package com.app.technicalchallenge.controller;
 
+import com.app.technicalchallenge.dto.ProcessCreationResponseDto;
 import com.app.technicalchallenge.dto.ProcessResponseDto;
 import com.app.technicalchallenge.dto.ResultResponseDto;
 import com.app.technicalchallenge.entities.Process;
 import com.app.technicalchallenge.service.ProcessService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,13 +22,15 @@ public class ApiController {
     }
 
     @PostMapping("/start")
-    public ResponseEntity<ProcessResponseDto> startProcess() {
-        return ResponseEntity.ok(service.startProcess());
+    public ResponseEntity<ProcessCreationResponseDto> startProcess(){
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(service.startProcess());
     }
 
     @PostMapping("/stop/{process_id}")
-    public ResponseEntity<ProcessResponseDto> stopProcess(@PathVariable long process_id){
-        return ResponseEntity.ok(service.stopProcess(process_id));
+    public ResponseEntity stopProcess(@PathVariable long process_id){
+        service.stopProcess(process_id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/status/{process_id}")
