@@ -2,6 +2,7 @@ package com.app.technicalchallenge.config;
 
 import com.app.technicalchallenge.io.FileAnalyzer;
 import com.app.technicalchallenge.io.FileScanner;
+import com.app.technicalchallenge.io.ResourceAnalyzer;
 import com.app.technicalchallenge.io.ResourceScanner;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -28,5 +29,5 @@ public class Config {
     }
 
     @Bean
-    public FileAnalyzer fileAnalyzer(){return new FileAnalyzer();}
+    public ResourceAnalyzer fileAnalyzer(){return new FileAnalyzer();}
 }

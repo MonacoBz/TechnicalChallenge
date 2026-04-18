@@ -1,6 +1,7 @@
 package com.app.technicalchallenge.exception.handler;
 
 import com.app.technicalchallenge.exception.AnalyzerException;
+import com.app.technicalchallenge.exception.InternalServerException;
 import com.app.technicalchallenge.exception.ProcessException;
 import com.app.technicalchallenge.exception.ScannerException;
 import org.springframework.http.HttpStatus;
@@ -16,8 +17,8 @@ public class GlobalHandlerException {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseException(e.getMessage()));
     }
 
-    @ExceptionHandler({AnalyzerException.class, ScannerException.class})
-    public ResponseEntity<ResponseException> error500(Exception e){
+    @ExceptionHandler(InternalServerException.class)
+    public ResponseEntity<ResponseException> error500(InternalServerException e){
         return ResponseEntity.internalServerError().body(new ResponseException(e.getMessage()));
     }
 }

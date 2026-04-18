@@ -8,9 +8,13 @@ import com.app.technicalchallenge.entities.Process;
 import com.app.technicalchallenge.entities.Progress;
 import com.app.technicalchallenge.entities.Result;
 import com.app.technicalchallenge.entities.Status;
+import com.app.technicalchallenge.exception.InternalServerException;
 import com.app.technicalchallenge.exception.ProcessException;
+import com.app.technicalchallenge.exception.ScannerException;
 import com.app.technicalchallenge.io.FileAnalyzer;
 import com.app.technicalchallenge.io.FileScanner;
+import com.app.technicalchallenge.io.ResourceAnalyzer;
+import com.app.technicalchallenge.io.ResourceScanner;
 import com.app.technicalchallenge.repository.ProcessRepository;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -28,16 +32,16 @@ public class ProcessService {
 
     private final ExecutorService executor;
 
-    private final FileScanner fileScanner;
+    private final ResourceScanner fileScanner;
 
-    private final FileAnalyzer fileAnalyzer;
+    private final ResourceAnalyzer fileAnalyzer;
 
     private final List<ProcessAsync> processes;
     public ProcessService(
             ProcessRepository repository,
             ExecutorService executor,
-            FileScanner fileScanner,
-            FileAnalyzer fileAnalyzer
+            ResourceScanner fileScanner,
+            ResourceAnalyzer fileAnalyzer
     ){
         this.repository = repository;
         this.executor = executor;
@@ -47,8 +51,14 @@ public class ProcessService {
     }
 
     public ProcessCreationResponseDto startProcess(){
-        var files = fileScanner.getFiles();
-        var process = createProcess(files);
+        Queue<Resource> files;
+        try{
+            files = fileScanner.getFiles();
+        }catch (ScannerException e){
+            repository.save(createProcess(files = new ArrayDeque<>() ,Status.FAILED));
+            throw new InternalServerException(e.getMessage());
+        }
+        var process = createProcess(files,Status.PENDIG);
         repository.save(process);
         var async = new ProcessAsync(this,process,files,fileAnalyzer);
         executor.submit(async);
@@ -91,11 +101,11 @@ public class ProcessService {
         repository.save(process);
     }
 
-    private Process createProcess(Queue<Resource> files){
+    private Process createProcess(Queue<Resource> files,Status status){
         return new Process(
                 null,
                 UUID.randomUUID(),
-                Status.PENDIG,
+                status,
                 new Progress(
                         files.size(),
                         0,

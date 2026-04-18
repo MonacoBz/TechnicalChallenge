@@ -2,7 +2,10 @@ package com.app.technicalchallenge.async;
 
 import com.app.technicalchallenge.entities.Process;
 import com.app.technicalchallenge.entities.Status;
+import com.app.technicalchallenge.exception.AnalyzerException;
+import com.app.technicalchallenge.exception.InternalServerException;
 import com.app.technicalchallenge.io.FileAnalyzer;
+import com.app.technicalchallenge.io.ResourceAnalyzer;
 import com.app.technicalchallenge.service.ProcessService;
 import org.springframework.core.io.Resource;
 
@@ -23,7 +26,7 @@ public class ProcessAsync implements Runnable{
 
     private Resource lastFile;
 
-    private final FileAnalyzer analyzer;
+    private final ResourceAnalyzer analyzer;
 
     private Thread thread;
 
@@ -33,7 +36,7 @@ public class ProcessAsync implements Runnable{
             ProcessService service,
             Process process,
             Queue<Resource> files,
-            FileAnalyzer analyzer
+            ResourceAnalyzer analyzer
     ){
         this.service = service;
         this.process = process;
@@ -56,14 +59,18 @@ public class ProcessAsync implements Runnable{
                 service.updateProcess(process);
                 count = 0;
             }
+            try {
             lastFile = files.poll();
             analyzer.analyze(process,lastFile,words);
             setProgress();
             count++;
-            try {
-                TimeUnit.SECONDS.sleep(10);
+            TimeUnit.SECONDS.sleep(10);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+            } catch (AnalyzerException e){
+                process.setStatus(Status.FAILED);
+                service.updateProcess(process);
+                throw new InternalServerException(e.getMessage());
             }
         }
         process.setStatus((Thread.currentThread().isInterrupted())?Status.STOPPED:Status.COMPLETED);
