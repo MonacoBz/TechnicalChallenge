@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -41,7 +42,7 @@ public class ProcessService {
         this.executor = executor;
         this.fileScanner = fileScanner;
         this.fileAnalyzer = fileAnalyzer;
-        processes = new ArrayList<>();
+        processes = new CopyOnWriteArrayList<>();
     }
 
     public ProcessResponseDto startProcess(){
@@ -83,7 +84,7 @@ public class ProcessService {
     }
 
     @Transactional
-    public synchronized Process updateProcess(Process process){
+    public Process updateProcess(Process process){
         if(!repository.existsById(process.getId()))throw new RuntimeException("There's not a process with id: " + process.getId());
         return repository.save(process);
     }
