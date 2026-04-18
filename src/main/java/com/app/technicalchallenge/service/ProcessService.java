@@ -31,7 +31,7 @@ public class ProcessService {
 
     private final FileAnalyzer fileAnalyzer;
 
-    private List<ProcessAsync> processes;
+    private final List<ProcessAsync> processes;
     public ProcessService(
             ProcessRepository repository,
             ExecutorService executor,
@@ -59,7 +59,7 @@ public class ProcessService {
         processes.stream()
                 .filter(p->p.getProcessId() == process_id)
                 .findFirst()
-                .orElseThrow(()->new ProcessException("There are no a process with id " + process_id))
+                .orElseThrow(()->new ProcessException("There are not a process with id " + process_id))
                 .stopThread();
 
         return new ProcessResponseDto(repository.findById(process_id).get());
