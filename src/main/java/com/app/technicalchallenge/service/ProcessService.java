@@ -7,6 +7,7 @@ import com.app.technicalchallenge.entities.Process;
 import com.app.technicalchallenge.entities.Progress;
 import com.app.technicalchallenge.entities.Result;
 import com.app.technicalchallenge.entities.Status;
+import com.app.technicalchallenge.exception.ProcessException;
 import com.app.technicalchallenge.io.FileAnalyzer;
 import com.app.technicalchallenge.io.FileScanner;
 import com.app.technicalchallenge.repository.ProcessRepository;
@@ -18,7 +19,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 @Service
 public class ProcessService {
@@ -59,7 +59,7 @@ public class ProcessService {
         processes.stream()
                 .filter(p->p.getProcessId() == process_id)
                 .findFirst()
-                .get()
+                .orElseThrow(()->new ProcessException("There are no a process with id " + process_id))
                 .stopThread();
 
         return new ProcessResponseDto(repository.findById(process_id).get());
@@ -67,7 +67,7 @@ public class ProcessService {
 
     public ProcessResponseDto statusProcess(long process_id){
         var process =  repository.findById(process_id)
-                        .orElseThrow(()->new RuntimeException("There are not a process with id: " + process_id));
+                        .orElseThrow(()->new ProcessException("There are not a process with id: " + process_id));
         return new ProcessResponseDto(process);
     }
 
@@ -79,14 +79,16 @@ public class ProcessService {
     }
 
     public ResultResponseDto resultProcess(long process_id){
-        var p = repository.findById(process_id).get();
+        var p = repository
+                .findById(process_id)
+                .orElseThrow(()->new ProcessException("There are not a process with id " + process_id));
+
         return new ResultResponseDto(p.getResults());
     }
 
     @Transactional
-    public Process updateProcess(Process process){
-        if(!repository.existsById(process.getId()))throw new RuntimeException("There's not a process with id: " + process.getId());
-        return repository.save(process);
+    public void updateProcess(Process process){
+        repository.save(process);
     }
 
     private Process createProcess(Queue<Resource> files){
