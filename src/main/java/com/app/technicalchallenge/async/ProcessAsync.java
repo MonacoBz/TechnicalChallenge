@@ -4,7 +4,6 @@ import com.app.technicalchallenge.entities.Process;
 import com.app.technicalchallenge.entities.Status;
 import com.app.technicalchallenge.exception.AnalyzerException;
 import com.app.technicalchallenge.exception.InternalServerException;
-import com.app.technicalchallenge.io.FileAnalyzer;
 import com.app.technicalchallenge.io.ResourceAnalyzer;
 import com.app.technicalchallenge.service.ProcessService;
 import org.springframework.core.io.Resource;
@@ -47,6 +46,7 @@ public class ProcessAsync implements Runnable{
 
     @Override
     public void run() {
+        try {
         thread = Thread.currentThread();
         int count = 0;
         process.setStatus(Status.RUNNING);
@@ -59,22 +59,25 @@ public class ProcessAsync implements Runnable{
                 service.updateProcess(process);
                 count = 0;
             }
-            try {
+
             lastFile = files.poll();
             analyzer.analyze(process,lastFile,words);
             setProgress();
             count++;
-            TimeUnit.SECONDS.sleep(10);
+            try{
+                TimeUnit.SECONDS.sleep(10);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-            } catch (AnalyzerException e){
-                process.setStatus(Status.FAILED);
-                service.updateProcess(process);
-                throw new InternalServerException(e.getMessage());
             }
+
         }
         process.setStatus((Thread.currentThread().isInterrupted())?Status.STOPPED:Status.COMPLETED);
         service.updateProcess(process);
+        } catch (AnalyzerException e){
+            process.setStatus(Status.FAILED);
+            service.updateProcess(process);
+            throw new InternalServerException(e.getMessage());
+        }
     }
 
     private void setProgress(){
