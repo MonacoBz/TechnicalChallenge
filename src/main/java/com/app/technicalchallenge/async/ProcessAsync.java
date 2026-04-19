@@ -3,8 +3,6 @@ package com.app.technicalchallenge.async;
 import com.app.technicalchallenge.entities.Process;
 import com.app.technicalchallenge.entities.Status;
 import com.app.technicalchallenge.exception.AnalyzerException;
-import com.app.technicalchallenge.exception.InternalServerException;
-import com.app.technicalchallenge.io.FileAnalyzer;
 import com.app.technicalchallenge.io.ResourceAnalyzer;
 import com.app.technicalchallenge.service.ProcessService;
 import org.springframework.core.io.Resource;
@@ -15,6 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ProcessAsync implements Runnable{
 
@@ -32,6 +32,12 @@ public class ProcessAsync implements Runnable{
 
     private Map<String,Integer> words;
 
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public final Condition PAUSED = lock.newCondition();
+
+    private volatile boolean isPaused = false;
+
     public ProcessAsync(
             ProcessService service,
             Process process,
@@ -47,33 +53,64 @@ public class ProcessAsync implements Runnable{
 
     @Override
     public void run() {
-        thread = Thread.currentThread();
-        int count = 0;
-        process.setStatus(Status.RUNNING);
-        service.updateProcess(process);
-        var start = LocalDateTime.now();
-        while(!files.isEmpty()){
-            if(Thread.currentThread().isInterrupted())break;
-            if(count == 2){
-                calculateTime(start);
-                service.updateProcess(process);
-                count = 0;
+        try {
+            thread = Thread.currentThread();
+            int count = 0;
+            process.setStatus(Status.RUNNING);
+            updateProcess();
+            var start = LocalDateTime.now();
+            while(!files.isEmpty()){
+                checkLock();
+                if (thread.isInterrupted()) break;
+                if (count == 2) {
+                    batchProcess(start);
+                    count = 0;
+                }
+                analyze();
+                count++;
+                try{
+                    TimeUnit.SECONDS.sleep(10);
+                }catch (InterruptedException e){
+                    thread.interrupt();
+                }
             }
-            try {
-            lastFile = files.poll();
-            analyzer.analyze(process,lastFile,words);
-            setProgress();
-            count++;
-            TimeUnit.SECONDS.sleep(10);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } catch (AnalyzerException e){
-                process.setStatus(Status.FAILED);
-                service.updateProcess(process);
-                throw new InternalServerException(e.getMessage());
-            }
+            process.setStatus((Thread.currentThread().isInterrupted())?Status.STOPPED:Status.COMPLETED);
+        } catch (AnalyzerException e){
+            process.setStatus(Status.FAILED);
+        }finally {
+            updateProcess();
         }
-        process.setStatus((Thread.currentThread().isInterrupted())?Status.STOPPED:Status.COMPLETED);
+    }
+
+    private void checkLock(){
+        lock.lock();
+        try {
+            if(isPaused){
+            while (isPaused) {
+                PAUSED.await();
+            }
+            process.setStatus(Status.RUNNING);
+            updateProcess();
+            }
+        }catch (InterruptedException e){
+            thread.interrupt();
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    private void batchProcess(LocalDateTime start){
+        calculateTime(start);
+        updateProcess();
+    }
+
+    private void analyze(){
+        lastFile = files.poll();
+        analyzer.analyze(process, lastFile, words);
+        setProgress();
+    }
+
+    private void updateProcess(){
         service.updateProcess(process);
     }
 
@@ -92,12 +129,32 @@ public class ProcessAsync implements Runnable{
         process.setEstimated_completion(LocalDateTime.now().plusSeconds(secondsRemaining));
     }
 
+
     public void stopThread(){
         thread.interrupt();
     }
 
+    public void pauseThread(){
+        isPaused = true;
+        process.setStatus(Status.PAUSED);
+        updateProcess();
+    }
+
+    public void resumeThread(){
+        lock.lock();
+        try {
+            isPaused = false;
+            PAUSED.signalAll();
+        }finally {
+            lock.unlock();
+        }
+    }
     public long getProcessId(){
         return process.getId();
+    }
+
+    public Status getProcessStatus(){
+        return process.getStatus();
     }
 
 }

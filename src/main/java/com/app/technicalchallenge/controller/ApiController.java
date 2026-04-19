@@ -27,6 +27,18 @@ public class ApiController {
                 .body(service.startProcess());
     }
 
+    @PostMapping("/pause/{process_id}")
+    public ResponseEntity pauseProcess(@PathVariable long process_id){
+        service.pauseProcess(process_id);
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/resume/{process_id}")
+    public ResponseEntity resumeProcess(@PathVariable long process_id){
+        service.resumeProcess(process_id);
+        return ResponseEntity.accepted().build();
+    }
+
     @PostMapping("/stop/{process_id}")
     public ResponseEntity stopProcess(@PathVariable long process_id){
         service.stopProcess(process_id);

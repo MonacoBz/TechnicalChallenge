@@ -66,6 +66,26 @@ public class ProcessService {
         return new ProcessCreationResponseDto(process);
     }
 
+    public void pauseProcess(long process_id){
+        processes.stream()
+                .filter(p->p.getProcessId() == process_id)
+                .findFirst()
+                .orElseThrow(()->new ProcessException("There are not a process with id " + process_id))
+                .pauseThread();
+    }
+
+    public void resumeProcess(long process_id){
+        var process = processes.stream()
+                .filter(p -> p.getProcessId() == process_id)
+                .findFirst()
+                .orElseThrow(()->new ProcessException("There are not a process with id " + process_id));
+
+        if(!process.getProcessStatus().equals(Status.PAUSED))throw new ProcessException("The process is not Paused");
+        process.resumeThread();
+    }
+
+
+
     public void stopProcess(long process_id){
         processes.stream()
                 .filter(p->p.getProcessId() == process_id)
