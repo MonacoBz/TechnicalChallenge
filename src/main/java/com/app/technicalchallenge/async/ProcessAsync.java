@@ -135,18 +135,26 @@ public class ProcessAsync implements Runnable{
         thread.interrupt();
     }
 
-    public void pausedThread(){
+    public void pauseThread(){
         isPaused = true;
     }
 
     public void resumeThread(){
         lock.lock();
-        isPaused = false;
-        PAUSED.signalAll();
-        lock.unlock();
+        try {
+            isPaused = false;
+            PAUSED.signalAll();
+            lock.unlock();
+        }finally {
+            lock.unlock();
+        }
     }
     public long getProcessId(){
         return process.getId();
+    }
+
+    public Status getProcessStatus(){
+        return process.getStatus();
     }
 
 }
