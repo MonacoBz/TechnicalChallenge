@@ -3,7 +3,6 @@ package com.app.technicalchallenge.async;
 import com.app.technicalchallenge.entities.Process;
 import com.app.technicalchallenge.entities.Status;
 import com.app.technicalchallenge.exception.AnalyzerException;
-import com.app.technicalchallenge.exception.InternalServerException;
 import com.app.technicalchallenge.io.ResourceAnalyzer;
 import com.app.technicalchallenge.service.ProcessService;
 import org.springframework.core.io.Resource;
@@ -137,6 +136,8 @@ public class ProcessAsync implements Runnable{
 
     public void pauseThread(){
         isPaused = true;
+        process.setStatus(Status.PAUSED);
+        updateProcess();
     }
 
     public void resumeThread(){
@@ -144,7 +145,6 @@ public class ProcessAsync implements Runnable{
         try {
             isPaused = false;
             PAUSED.signalAll();
-            lock.unlock();
         }finally {
             lock.unlock();
         }
