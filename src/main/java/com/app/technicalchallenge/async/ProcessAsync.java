@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ProcessAsync implements Runnable{
 
@@ -31,6 +33,12 @@ public class ProcessAsync implements Runnable{
 
     private Map<String,Integer> words;
 
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public final Condition PAUSED = lock.newCondition();
+
+    private volatile boolean isPaused = false;
+
     public ProcessAsync(
             ProcessService service,
             Process process,
@@ -47,37 +55,64 @@ public class ProcessAsync implements Runnable{
     @Override
     public void run() {
         try {
-        thread = Thread.currentThread();
-        int count = 0;
-        process.setStatus(Status.RUNNING);
-        service.updateProcess(process);
-        var start = LocalDateTime.now();
-        while(!files.isEmpty()){
-            if(Thread.currentThread().isInterrupted())break;
-            if(count == 2){
-                calculateTime(start);
-                service.updateProcess(process);
-                count = 0;
+            thread = Thread.currentThread();
+            int count = 0;
+            process.setStatus(Status.RUNNING);
+            updateProcess();
+            var start = LocalDateTime.now();
+            while(!files.isEmpty()){
+                checkLock();
+                if (thread.isInterrupted()) break;
+                if (count == 2) {
+                    batchProcess(start);
+                    count = 0;
+                }
+                analyze();
+                count++;
+                try{
+                    TimeUnit.SECONDS.sleep(10);
+                }catch (InterruptedException e){
+                    thread.interrupt();
+                }
             }
-
-            lastFile = files.poll();
-            analyzer.analyze(process,lastFile,words);
-            setProgress();
-            count++;
-            try{
-                TimeUnit.SECONDS.sleep(10);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-        }
-        process.setStatus((Thread.currentThread().isInterrupted())?Status.STOPPED:Status.COMPLETED);
-        service.updateProcess(process);
+            process.setStatus((Thread.currentThread().isInterrupted())?Status.STOPPED:Status.COMPLETED);
         } catch (AnalyzerException e){
             process.setStatus(Status.FAILED);
-            service.updateProcess(process);
-            throw new InternalServerException(e.getMessage());
+        }finally {
+            updateProcess();
         }
+    }
+
+    private void checkLock(){
+        lock.lock();
+        try {
+            if(isPaused){
+            while (isPaused) {
+                PAUSED.await();
+            }
+            process.setStatus(Status.RUNNING);
+            updateProcess();
+            }
+        }catch (InterruptedException e){
+            thread.interrupt();
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    private void batchProcess(LocalDateTime start){
+        calculateTime(start);
+        updateProcess();
+    }
+
+    private void analyze(){
+        lastFile = files.poll();
+        analyzer.analyze(process, lastFile, words);
+        setProgress();
+    }
+
+    private void updateProcess(){
+        service.updateProcess(process);
     }
 
     private void setProgress(){
@@ -95,10 +130,21 @@ public class ProcessAsync implements Runnable{
         process.setEstimated_completion(LocalDateTime.now().plusSeconds(secondsRemaining));
     }
 
+
     public void stopThread(){
         thread.interrupt();
     }
 
+    public void pausedThread(){
+        isPaused = true;
+    }
+
+    public void resumeThread(){
+        lock.lock();
+        isPaused = false;
+        PAUSED.signalAll();
+        lock.unlock();
+    }
     public long getProcessId(){
         return process.getId();
     }
